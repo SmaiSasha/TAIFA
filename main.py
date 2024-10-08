@@ -1,27 +1,22 @@
-import milmur
+import mealey_to_moore_and_back as mtmb
 
-mealy_states, mealy_inputs, mealy_transitions = milmur.parse_mealy_machine('input.txt')
-mealy_machine = milmur.mealy_machine(mealy_states, mealy_inputs, mealy_transitions)
+mealy_machine = mtmb.parse_mealy_machine('input_mealey.txt')
+moore_machine = mtmb.mealy_to_moore(mealy_machine)
 
-moore_states_unnum = []
-for i in mealy_transitions:
-    moore_states_unnum.append(mealy_transitions[i])
-moore_states_unnum = list(set(moore_states_unnum))
-moore_states_unnum.sort()
-moore_states = []
-for i in range(len(moore_states_unnum)):
-    moore_states.append("q" + str(i))
-moore_inputs = mealy_inputs
-moore_outputs_mapping = {moore_states[i]: moore_states_unnum[i] for i in range(len(moore_states))}
-moore_transitions = {}
-for state in moore_states:
-    for inpt in moore_inputs:
-        transition = list(moore_outputs_mapping.keys())[list(moore_outputs_mapping.values()).index(mealy_transitions[(moore_outputs_mapping[state][0], inpt)])]
-        moore_transitions[(state, inpt)] = transition
+mealey_machine2 = mtmb.moore_to_mealy(moore_machine)
 
-moore_machine = milmur.moore_machine(moore_states, moore_inputs, moore_transitions, moore_outputs_mapping)
+# print('mealy_machine.states:', mealy_machine.states)
+# print('mealy_machine.inputs:', mealy_machine.inputs)
+# print('mealey_machine.transitions:', mealy_machine.transitions)
 
-print('moore_transitions:', moore_transitions)
+# print('mealy_machine.states:', mealey_machine2.states)
+# print('mealy_machine.inputs:', mealey_machine2.inputs)
+# print('mealey_machine.transitions:', mealey_machine2.transitions)
+
+print('moore_machine.states:',moore_machine.states)
+print('moore_machine.inputs:',moore_machine.inputs)
+print('moore_machine.transitions:',moore_machine.transitions)
+print('moore_machine.output_mapping;',moore_machine.output_mapping)
 
 #   ;  s0   ; s1   ; s2   ; s3
 # x1; s3/y1; s0/y2; s2/y3; s0/y5
@@ -46,3 +41,17 @@ print('moore_transitions:', moore_transitions)
 # x1;q8;q8;q8;q0;q0;q0;q7;q7;q2;q2
 # x2;q3;q3;q3;q6;q6;q6;q1;q1;q9;q9
 # x3;q2;q2;q2;q4;q4;q4;q8;q8;q5;q5
+
+
+# 	Мур:
+#   ;y2;y4;y5;y1;y4;y5;y1;y3;y1;y2
+#   ;q0;q1;q2;q3;q4;q5;q6;q7;q8;q9
+# x1;q8;q8;q8;q0;q0;q0;q7;q7;q2;q2
+# x2;q3;q3;q3;q6;q6;q6;q1;q1;q9;q9
+# x3;q2;q2;q2;q4;q4;q4;q8;q8;q5;q5
+
+# Мили:
+#   ;  q0;    q1;    q2;    q3;    q4;    q5;    q6;    q7;    q8;    q9
+# x1; q8/y1; q8/y1; q8/y1; q0/y2; q0/y2; q0/y2; q7/y3; q7/y3; q2/y5; q2/y5
+# x2; q3/y1; q3/y1; q3/y1; q6/y1; q6/y1; q6/y1; q1/y4; q1/y4; q9/y2; q9/y2
+# x3; q2/y5; q2/y5; q2/y5; q4/y4; q4/y4; q4/y4; q8/y1; q8/y1; q5/y5; q5/y5
