@@ -32,6 +32,39 @@ def parse_mealy_machine(file_path):
             transitions[(state, input_symbol)] = (next_state, output)
     return mm.mealy_machine(states, inputs, transitions)
 
+
+def parse_moore_machine(file_path):
+    with open(file_path, 'r') as file:
+        lines = file.readlines()
+        
+    # Разделяем строки и удаляем лишние пробелы
+    parsed_lines = [line.strip().split(";") for line in lines]
+
+    # Первая строка - выходные значения
+    output_mapping_values = parsed_lines[0][1:]
+
+    # Вторая строка - состояния
+    states = parsed_lines[1][1:]
+
+    # Остальные строки - входы и переходы
+    inputs = [line[0] for line in parsed_lines[2:]]
+    transitions_data = [line[1:] for line in parsed_lines[2:]]
+
+    # Составляем таблицу переходов
+    transitions = {}
+    for i, input_signal in enumerate(inputs):
+        for j, state in enumerate(states):
+            transitions[(state, input_signal)] = transitions_data[i][j]
+
+    # Составляем выходные значения для каждого состояния
+    output_mapping = {state: output_mapping_values[i] for i, state in enumerate(states)}
+
+    # Создаем объект moore_machine
+    moore_machine = mm.moore_machine(states, inputs, transitions, output_mapping)
+    
+    return moore_machine
+
+
 def mealy_to_moore(mealy_machine):
     moore_states_unnum = []
     for i in mealy_machine.transitions:
@@ -42,47 +75,39 @@ def mealy_to_moore(mealy_machine):
     for i in range(len(moore_states_unnum)):
         moore_states.append("q" + str(i))
     moore_inputs = mealy_machine.inputs
-    moore_outputs_mapping = {moore_states[i]: moore_states_unnum[i] for i in range(len(moore_states))}
+    temp_moore_outputs_mapping = {moore_states[i]: moore_states_unnum[i] for i in range(len(moore_states))}
+    moore_outputs_mapping = {moore_states[i]: moore_states_unnum[i][1] for i in range(len(moore_states))}
     moore_transitions = {}
     for state in moore_states:
         for inpt in moore_inputs:
-            transition = list(moore_outputs_mapping.keys())[list(moore_outputs_mapping.values()).index(mealy_machine.transitions[(moore_outputs_mapping[state][0], inpt)])]
+            transition = list(temp_moore_outputs_mapping.keys())[list(temp_moore_outputs_mapping.values()).index(mealy_machine.transitions[(temp_moore_outputs_mapping[state][0], inpt)])]
             moore_transitions[(state, inpt)] = transition
-
     moore_machine = mm.moore_machine(moore_states, moore_inputs, moore_transitions, moore_outputs_mapping)
     return moore_machine
 
 def moore_to_mealy(moore_machine):
-    """
-    Преобразует автомат Мура в автомат Мили.
+    # Извлекаем состояния, входы, переходы и отображение выходов из moore_machine
+    moore_states = moore_machine.states
+    moore_inputs = moore_machine.inputs
+    moore_transitions = moore_machine.transitions
+    moore_output_mapping = moore_machine.output_mapping
 
-    :param moore_machine: Объект класса moore_machine.
-    :return: Объект класса mealy_machine, представляющий эквивалентный автомат Мили.
-    """
-    # Инициализируем состояния и входы автомата Мили
-    mealy_states = list(set([moore_machine.output_mapping[state][0] for state in moore_machine.states]))  # Уникальные состояния
-    mealy_inputs = moore_machine.inputs
-
-    # Инициализируем словарь переходов для автомата Мили
+    # Готовим структуру для хранения переходов Mealy-машины
     mealy_transitions = {}
 
-    # Проходим по всем состояниям автомата Мура
-    for moore_state in moore_machine.states:
-        current_mealy_state = moore_machine.output_mapping[moore_state][0]  # Текущее состояние автомата Мили
+    # Проходим по всем состояниям и входам
+    for state in moore_states:
+        for input_signal in moore_inputs:
+            # Определяем новое состояние, в которое переходит машина при данном входе
+            new_state = moore_transitions[(state, input_signal)]
 
-        for input_symbol in mealy_inputs:
-            # Найти следующее состояние автомата Мура
-            next_moore_state = moore_machine.transitions[(moore_state, input_symbol)]
-            
-            # Извлекаем следующее состояние автомата Мили и соответствующий выход
-            next_mealy_state = moore_machine.output_mapping[next_moore_state][0]
-            output = moore_machine.output_mapping[next_moore_state][1]
-            
-            # Формируем переход для автомата Мили
-            mealy_transitions[(current_mealy_state, input_symbol)] = (next_mealy_state, output)
+            # Для Mealy-машины нужно также получить выход на переходе, который соответствует выходу нового состояния в Moore-машине
+            output_signal = moore_output_mapping[new_state]
 
-    # Возвращаем эквивалентный автомат Мили
-    return mm.mealy_machine(mealy_states, mealy_inputs, mealy_transitions)
+            # Добавляем в таблицу переходов для Mealy-машины: текущий state, вход и переход в новую state с соответствующим выходом
+            mealy_transitions[(state, input_signal)] = (new_state, output_signal)
 
-
-
+    # Создаем объект Mealy-машины с соответствующими состояниями, входами и переходами
+    mealy_machine = mm.mealy_machine(moore_states, moore_inputs, mealy_transitions)
+    
+    return mealy_machine
