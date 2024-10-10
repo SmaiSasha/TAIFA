@@ -1,32 +1,34 @@
-import mealey_to_moore_and_back as mtmb
+from mealy_moore_machines_classes import mealey_machine, moore_machine
 
-mealey_machine = mtmb.parse_mealy_machine('input_mealey.txt')
-moore_machine = mtmb.mealy_to_moore(mealey_machine)
+mealy = mealey_machine.from_file('input_mealey.txt')
+moore_states, moore_inputs, moore_transitions, moore_outputs_mapping = mealey_machine.mealey_to_moore(mealy)
+moore = moore_machine(moore_states, moore_inputs, moore_transitions, moore_outputs_mapping)
 
-moore_machine2 = mtmb.parse_moore_machine('input_moore.txt')
-mealey_machine2 = mtmb.moore_to_mealy(moore_machine2)
+moore_2 = moore_machine.from_file('input_moore.txt')
+mealey_states, mealey_inputs, mealey_transitions = moore_machine.moore_to_mealey(moore_2)
+mealey_2 = mealey_machine(mealey_states, mealey_inputs, mealey_transitions)
 
-# print('mealy_machine.states:', mealey_machine.states)
-# print('mealy_machine.inputs:', mealey_machine.inputs)
-# print('mealey_machine.transitions:', mealey_machine.transitions)
+# print('mealy.states:', mealey.states)
+# print('mealy.inputs:', mealey.inputs)
+# print('mealey.transitions:', mealey.transitions)
 
-# print('mealy_machine.states:', mealey_machine2.states)
-# print('mealy_machine.inputs:', mealey_machine2.inputs)
-# print('mealey_machine.transitions:', mealey_machine2.transitions)
+# print('mealy_2.states:', mealey_2.states)
+# print('mealy_2.inputs:', mealey_2.inputs)
+# print('mealey_2.transitions:', mealey_2.transitions)
 
-# print('mealy_machine.states:', mealey_machine2.states == mealey_machine.states)
-# print('mealy_machine.inputs:', mealey_machine2.inputs == mealey_machine.inputs)
-# print('mealey_machine.transitions:', mealey_machine2.transitions == mealey_machine.transitions)
+# print('mealy.states:', mealey_2.states == mealey.states)
+# print('mealy.inputs:', mealey_2.inputs == mealey.inputs)
+# print('mealey.transitions:', mealey_2.transitions == mealey.transitions)
 
-# print('moore_machine.states:',moore_machine.states)
-# print('moore_machine.inputs:',moore_machine.inputs)
-# print('moore_machine.transitions:',moore_machine.transitions)
-# print('moore_machine.output_mapping;',moore_machine.output_mapping)
+# print('moore.states:',moore.states)
+# print('moore.inputs:',moore.inputs)
+# print('moore.transitions:',moore.transitions)
+# print('moore.output_mapping;',moore.output_mapping)
 
-# print('moore_machine.states:',moore_machine2.states)
-# print('moore_machine.inputs:',moore_machine2.inputs)
-# print('moore_machine.transitions:',moore_machine2.transitions)
-# print('moore_machine.output_mapping;',moore_machine2.output_mapping)
+# print('moore_2.states:',moore_2.states)
+# print('moore_2.inputs:',moore_2.inputs)
+# print('moore_2.transitions:',moore_2.transitions)
+# print('moore_2.output_mapping;',moore_2.output_mapping)
 
 #   ;  s0   ; s1   ; s2   ; s3
 # x1; s3/y1; s0/y2; s2/y3; s0/y5
