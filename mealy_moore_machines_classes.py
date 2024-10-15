@@ -53,18 +53,20 @@ class mealey_machine:
         moore_states = []
         i = 0
         j = 0
+        temp_moore_outputs_mapping = {}
+        moore_outputs_mapping = {}
         for state in mealy_machine.states:
           if state == moore_states_unnum[j][0]:
             while (j < len(moore_states_unnum)) and (state == moore_states_unnum[j][0]):
               moore_states.append("q" + str(i))
-              temp_moore_outputs_mapping = {moore_states[i]: moore_states_unnum[j]}
-              moore_outputs_mapping = {moore_states[i]: moore_states_unnum[j][1]}
+              temp_moore_outputs_mapping[moore_states[i]] = moore_states_unnum[j]
+              moore_outputs_mapping[moore_states[i]] = moore_states_unnum[j][1]
               i+=1
               j+=1
           else:
             moore_states.append("q" + str(i))
             temp_moore_outputs_mapping[moore_states[i]] = (state, '-')
-            moore_outputs_mapping = {moore_states[i]: '-'}
+            moore_outputs_mapping[moore_states[i]] =  '-'
             i+=1
         moore_inputs = mealy_machine.inputs
         moore_transitions = {}
