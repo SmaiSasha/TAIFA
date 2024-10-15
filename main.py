@@ -1,15 +1,14 @@
 from mealy_moore_machines_classes import mealey_machine, moore_machine
 
 
-mealy = mealey_machine.from_file('input_mealey.txt')
-moore_states, moore_inputs, moore_transitions, moore_outputs_mapping = mealey_machine.mealey_to_moore(mealy)
+mealey = mealey_machine.from_file('input_mealey.txt')
+moore_states, moore_inputs, moore_transitions, moore_outputs_mapping = mealey_machine.mealey_to_moore(mealey)
 moore = moore_machine(moore_states, moore_inputs, moore_transitions, moore_outputs_mapping)
 
-moore_2 = moore_machine.from_file('input_moore.txt')
-mealey_states, mealey_inputs, mealey_transitions = moore_machine.moore_to_mealey(moore_2)
-mealey_2 = mealey_machine(mealey_states, mealey_inputs, mealey_transitions)
+# moore_2 = moore_machine.from_file('input_moore.txt')
+# mealey_states, mealey_inputs, mealey_transitions = moore_machine.moore_to_mealey(moore_2)
+# mealey_2 = mealey_machine(mealey_states, mealey_inputs, mealey_transitions)
 
-moore.visualize()
 
 # print('mealy.states:', mealey.states)
 # print('mealy.inputs:', mealey.inputs)

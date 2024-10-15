@@ -51,11 +51,22 @@ class mealey_machine:
         moore_states_unnum = list(set(moore_states_unnum))
         moore_states_unnum.sort()
         moore_states = []
-        for i in range(len(moore_states_unnum)):
+        i = 0
+        j = 0
+        for state in mealy_machine.states:
+          if state == moore_states_unnum[j][0]:
+            while (j < len(moore_states_unnum)) and (state == moore_states_unnum[j][0]):
+              moore_states.append("q" + str(i))
+              temp_moore_outputs_mapping = {moore_states[i]: moore_states_unnum[j]}
+              moore_outputs_mapping = {moore_states[i]: moore_states_unnum[j][1]}
+              i+=1
+              j+=1
+          else:
             moore_states.append("q" + str(i))
+            temp_moore_outputs_mapping[moore_states[i]] = (state, '-')
+            moore_outputs_mapping = {moore_states[i]: '-'}
+            i+=1
         moore_inputs = mealy_machine.inputs
-        temp_moore_outputs_mapping = {moore_states[i]: moore_states_unnum[i] for i in range(len(moore_states))}
-        moore_outputs_mapping = {moore_states[i]: moore_states_unnum[i][1] for i in range(len(moore_states))}
         moore_transitions = {}
         for state in moore_states:
             for inpt in moore_inputs:
