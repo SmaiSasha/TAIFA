@@ -62,6 +62,58 @@ class mealey_machine:
                 transition = list(temp_moore_outputs_mapping.keys())[list(temp_moore_outputs_mapping.values()).index(mealy_machine.transitions[(temp_moore_outputs_mapping[state][0], inpt)])]
                 moore_transitions[(state, inpt)] = transition
         return moore_states, moore_inputs, moore_transitions, moore_outputs_mapping
+    
+    def visualize(self):
+        """
+        Визуализация автомата Мили с помощью библиотеки PyVis.
+        """
+        # Импортируем Network только при необходимости
+        from pyvis.network import Network
+        
+        # Создаем объект сети
+        net = Network(directed=True)  # directed=True указывает, что это ориентированный граф
+
+        # Добавляем узлы - это состояния Mealy-машины
+        for state in self.states:
+            net.add_node(state, label=state, title=f"State: {state}")
+
+        # Добавляем рёбра - это переходы с метками (вход/выход)
+        for (state, input_signal), (next_state, output_signal) in self.transitions.items():
+            # Метка ребра будет выглядеть как 'x1/y1' (вход/выход)
+            edge_label = f"{input_signal}/{output_signal}"
+            net.add_edge(state, next_state, label=edge_label, title=edge_label)
+
+        # Настройка внешнего вида сети
+        net.set_options("""
+        var options = {
+          "nodes": {
+            "font": {
+              "size": 16
+            },
+            "shape": "ellipse"
+          },
+          "edges": {
+            "arrows": {
+              "to": {
+                "enabled": true
+              }
+            },
+            "font": {
+              "size": 12
+            }
+          },
+          "physics": {
+            "barnesHut": {
+              "gravitationalConstant": -100000,
+              "centralGravity": 0.3,
+              "springLength": 95
+            }
+          }
+        }
+        """)
+        
+        # Сохраняем и отображаем граф
+        net.show("mealy_machine.html", notebook=False)
 
 class moore_machine:
     def __init__(self, states, inputs, transitions, output_mapping):
@@ -129,3 +181,50 @@ class moore_machine:
                 # Добавляем в таблицу переходов для Mealy-машины: текущий state, вход и переход в новую state с соответствующим выходом
                 mealey_transitions[(state, input_signal)] = (new_state, output_signal)
         return moore_states, moore_inputs, mealey_transitions
+    
+    def visualize(self):
+        from pyvis.network import Network
+        # Создаем сетевой граф для визуализации
+        net = Network(directed=True)
+
+        # Добавляем узлы (состояния) с выходами
+        for state in self.states:
+            label = f"{state}/{self.output_mapping[state]}"  # Метка: состояние/выход
+            net.add_node(state, label=label)
+
+        # Добавляем рёбра (переходы) с метками входных сигналов
+        for (state, input_signal), next_state in self.transitions.items():
+            net.add_edge(state, next_state, label=input_signal)  # Метка ребра — входной сигнал
+
+        # Настройки для визуализации
+        net.set_options("""
+        var options = {
+          "nodes": {
+            "font": {
+              "size": 16
+            },
+            "shape": "ellipse"
+          },
+          "edges": {
+            "arrows": {
+              "to": {
+                "enabled": true
+              }
+            },
+            "font": {
+              "size": 12
+            }
+          },
+          "physics": {
+            "barnesHut": {
+              "gravitationalConstant": -100000,
+              "centralGravity": 0.3,
+              "springLength": 95
+            }
+          }
+        }
+        """)
+
+        # Сохранение графа в HTML-файл
+        net.show("moore_machine.html", notebook=False)
+        

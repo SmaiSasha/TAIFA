@@ -1,5 +1,6 @@
 from mealy_moore_machines_classes import mealey_machine, moore_machine
 
+
 mealy = mealey_machine.from_file('input_mealey.txt')
 moore_states, moore_inputs, moore_transitions, moore_outputs_mapping = mealey_machine.mealey_to_moore(mealy)
 moore = moore_machine(moore_states, moore_inputs, moore_transitions, moore_outputs_mapping)
@@ -7,6 +8,8 @@ moore = moore_machine(moore_states, moore_inputs, moore_transitions, moore_outpu
 moore_2 = moore_machine.from_file('input_moore.txt')
 mealey_states, mealey_inputs, mealey_transitions = moore_machine.moore_to_mealey(moore_2)
 mealey_2 = mealey_machine(mealey_states, mealey_inputs, mealey_transitions)
+
+moore.visualize()
 
 # print('mealy.states:', mealey.states)
 # print('mealy.inputs:', mealey.inputs)
@@ -67,3 +70,9 @@ mealey_2 = mealey_machine(mealey_states, mealey_inputs, mealey_transitions)
 # x1; q8/y1; q8/y1; q8/y1; q0/y2; q0/y2; q0/y2; q7/y3; q7/y3; q2/y5; q2/y5
 # x2; q3/y1; q3/y1; q3/y1; q6/y1; q6/y1; q6/y1; q1/y4; q1/y4; q9/y2; q9/y2
 # x3; q2/y5; q2/y5; q2/y5; q4/y4; q4/y4; q4/y4; q8/y1; q8/y1; q5/y5; q5/y5
+
+
+
+
+
+
