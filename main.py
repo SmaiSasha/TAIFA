@@ -5,14 +5,29 @@ mealey = mealey_machine.from_file('input_mealey.txt')
 moore_states, moore_inputs, moore_transitions, moore_outputs_mapping = mealey_machine.mealey_to_moore(mealey)
 moore = moore_machine(moore_states, moore_inputs, moore_transitions, moore_outputs_mapping)
 
-# moore_2 = moore_machine.from_file('input_moore.txt')
-# mealey_states, mealey_inputs, mealey_transitions = moore_machine.moore_to_mealey(moore_2)
-# mealey_2 = mealey_machine(mealey_states, mealey_inputs, mealey_transitions)
-
+states, inputs, transitions = mealey.minimize()
+min_mealey = mealey_machine(states, inputs, transitions)
+states, inputs, transitions = min_mealey.minimize()
+min_mealey = mealey_machine(states, inputs, transitions)
 
 # print('mealy.states:', mealey.states)
 # print('mealy.inputs:', mealey.inputs)
 # print('mealey.transitions:', mealey.transitions)
+
+# print('states:', min_mealey.states)
+# print('inputs:', min_mealey.inputs)
+# print('transitions:', min_mealey.transitions)
+print(min_mealey.return_as_table())
+
+# moore_2 = moore_machine.from_file('input_moore.txt')
+# mealey_states, mealey_inputs, mealey_transitions = moore_machine.moore_to_mealey(moore_2)
+# mealey_2 = mealey_machine(mealey_states, mealey_inputs, mealey_transitions)
+
+# print(moore_2.return_as_table())
+
+# mealey_2.visualize()
+
+
 
 # print('mealy_2.states:', mealey_2.states)
 # print('mealy_2.inputs:', mealey_2.inputs)
@@ -30,7 +45,7 @@ moore = moore_machine(moore_states, moore_inputs, moore_transitions, moore_outpu
 # print('moore_2.states:',moore_2.states)
 # print('moore_2.inputs:',moore_2.inputs)
 # print('moore_2.transitions:',moore_2.transitions)
-# print('moore_2.output_mapping;',moore_2.output_mapping)
+# print('moore_2.output_mapping:',moore_2.output_mapping)
 
 #   ;  s0   ; s1   ; s2   ; s3
 # x1; s3/y1; s0/y2; s2/y3; s0/y5

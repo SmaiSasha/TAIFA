@@ -1,3 +1,30 @@
+PYVIS_OPTIONS = """
+        var options = {
+          "nodes": {
+            "font": {
+              "size": 16
+            },
+            "shape": "ellipse"
+          },
+          "edges": {
+            "arrows": {
+              "to": {
+                "enabled": true
+              }
+            },
+            "font": {
+              "size": 12
+            }
+          },
+          "physics": {
+            "barnesHut": {
+              "gravitationalConstant": -100000,
+              "centralGravity": 0.3,
+              "springLength": 95
+            }
+          }
+        }
+        """
 class mealey_machine:
     def __init__(self, states, inputs, transitions):
         """
@@ -97,36 +124,92 @@ class mealey_machine:
             net.add_edge(state, next_state, label=edge_label, title=edge_label)
 
         # Настройка внешнего вида сети
-        net.set_options("""
-        var options = {
-          "nodes": {
-            "font": {
-              "size": 16
-            },
-            "shape": "ellipse"
-          },
-          "edges": {
-            "arrows": {
-              "to": {
-                "enabled": true
-              }
-            },
-            "font": {
-              "size": 12
-            }
-          },
-          "physics": {
-            "barnesHut": {
-              "gravitationalConstant": -100000,
-              "centralGravity": 0.3,
-              "springLength": 95
-            }
-          }
-        }
-        """)
+        net.set_options(PYVIS_OPTIONS)
         
         # Сохраняем и отображаем граф
         net.show("mealy_machine.html", notebook=False)
+
+    def return_as_table(self):
+      # Сначала создаём первую строку - заголовок с состояниями
+      table_str = ";" + ";".join(self.states) + "\n"
+
+      # Теперь проходим по каждому входному сигналу
+      for input_signal in self.inputs:
+          row = [input_signal]  # Начало строки с сигналом входа
+          for state in self.states:
+              # Для каждого состояния ищем переход для данного входного сигнала
+              next_state, output = self.transitions[(state, input_signal)]
+              # Формируем запись в формате next_state/output
+              row.append(f"{next_state}/{output}")
+          # Добавляем строку в таблицу
+          table_str += ";".join(row) + "\n"
+
+      return table_str
+    
+    def minimize(self):
+        # Шаг 1: Инициализация таблицы эквивалентности
+        equivalence_table = {}
+        for i, state1 in enumerate(self.states):
+            for j, state2 in enumerate(self.states):
+                if i < j:
+                    equivalence_table[(state1, state2)] = None  # Изначально состояния считаются эквивалентными
+
+        # Шаг 2: Проверка эквивалентности на основе выходных символов
+        for (state1, state2) in equivalence_table:
+            for input_symbol in self.inputs:
+                output1 = self.transitions[(state1, input_symbol)][1]
+                output2 = self.transitions[(state2, input_symbol)][1]
+                if output1 != output2:
+                    equivalence_table[(state1, state2)] = False  # Помечаем как неэквивалентные
+                    break  # Достаточно одного различия
+
+        # Шаг 3: Итеративная проверка эквивалентности на основе переходов
+        changes = True
+        while changes:  # Повторяем, пока происходят изменения
+            changes = False
+            for (state1, state2) in equivalence_table:
+                if equivalence_table[(state1, state2)] is None:  # Если состояния пока эквивалентны
+                    for input_symbol in self.inputs:
+                        next_state1 = self.transitions[(state1, input_symbol)][0]
+                        next_state2 = self.transitions[(state2, input_symbol)][0]
+
+                        # Проверяем их эквивалентность по переходам
+                        if next_state1 != next_state2:
+                            if (min(next_state1, next_state2), max(next_state1, next_state2)) in equivalence_table:
+                                if equivalence_table[(min(next_state1, next_state2), max(next_state1, next_state2))] is False:
+                                    equivalence_table[(state1, state2)] = False  # Если переходы ведут в неэквивалентные состояния
+                                    changes = True
+                                    break
+
+        # Шаг 4: Группировка эквивалентных состояний
+        equivalent_states = {}
+        for (state1, state2), is_equivalent in equivalence_table.items():
+            if is_equivalent is None:  # Эквивалентные состояния
+                if state1 not in equivalent_states and state2 not in equivalent_states:
+                    equivalent_states[state1] = state1
+                    equivalent_states[state2] = state1
+                elif state1 in equivalent_states:
+                    equivalent_states[state2] = equivalent_states[state1]
+                elif state2 in equivalent_states:
+                    equivalent_states[state1] = equivalent_states[state2]
+
+        # Для остальных состояний, которые не были затронуты (не объединены)
+        for state in self.states:
+            if state not in equivalent_states:
+                equivalent_states[state] = state
+
+        # Шаг 5: Формирование новой таблицы переходов
+        new_states = list(set(equivalent_states.values()))  # Получаем уникальные эквивалентные состояния
+        new_transitions = {}
+
+        for (state, input_symbol), (next_state, output_symbol) in self.transitions.items():
+            minimized_state = equivalent_states[state]
+            minimized_next_state = equivalent_states[next_state]
+            new_transitions[(minimized_state, input_symbol)] = (minimized_next_state, output_symbol)
+
+        # Шаг 6: Возврат минимизированных атрибутов
+        return new_states, self.inputs, new_transitions
+
 
 class moore_machine:
     def __init__(self, states, inputs, transitions, output_mapping):
@@ -210,34 +293,28 @@ class moore_machine:
             net.add_edge(state, next_state, label=input_signal)  # Метка ребра — входной сигнал
 
         # Настройки для визуализации
-        net.set_options("""
-        var options = {
-          "nodes": {
-            "font": {
-              "size": 16
-            },
-            "shape": "ellipse"
-          },
-          "edges": {
-            "arrows": {
-              "to": {
-                "enabled": true
-              }
-            },
-            "font": {
-              "size": 12
-            }
-          },
-          "physics": {
-            "barnesHut": {
-              "gravitationalConstant": -100000,
-              "centralGravity": 0.3,
-              "springLength": 95
-            }
-          }
-        }
-        """)
+        net.set_options(PYVIS_OPTIONS)
 
         # Сохранение графа в HTML-файл
         net.show("moore_machine.html", notebook=False)
-        
+    
+    def return_as_table(self):
+      # Формируем первую строку с выходами (output_mapping)
+      outputs = ";" + ";".join([self.output_mapping[state] for state in self.states]) + "\n"
+      
+      # Формируем вторую строку с состояниями
+      states = ";" + ";".join(self.states) + "\n"
+
+      # Формируем строки для каждого входного сигнала
+      transitions = ""
+      for input_signal in self.inputs:
+          row = [input_signal]  # Начинаем строку с входного сигнала
+          for state in self.states:
+              # Добавляем состояние-переход для данного входного сигнала
+              next_state = self.transitions[(state, input_signal)]
+              row.append(next_state)
+          transitions += ";".join(row) + "\n"  # Преобразуем список строки в строку и добавляем её в общие переходы
+
+      # Складываем все части таблицы
+      table_str = outputs + states + transitions
+      return table_str
