@@ -39,8 +39,7 @@ class mealey_machine:
         self.inputs = inputs
         self.transitions = transitions
 
-    @classmethod
-    def from_file(cls, file_path: str):
+    def from_file(file_path: str):
         """
         Парсинг файла автомата Мили и преобразование его в структуры данных для MealyMachine.
         :param file_path: Путь к файлу с таблицей автомата Мили.
@@ -69,7 +68,7 @@ class mealey_machine:
                 
                 # Заполняем переходы и выходы для автомата Мили
                 transitions[(state, input_symbol)] = (next_state, output)
-        return cls(states, inputs, transitions)
+        return mealey_machine(states, inputs, transitions)
     
     def mealey_to_moore(mealy_machine):
         moore_states_unnum = []
@@ -208,7 +207,7 @@ class mealey_machine:
             new_transitions[(minimized_state, input_symbol)] = (minimized_next_state, output_symbol)
 
         # Шаг 6: Возврат минимизированных атрибутов
-        return new_states, self.inputs, new_transitions
+        return mealey_machine(new_states, self.inputs, new_transitions)
 
 
 class moore_machine:
@@ -227,8 +226,7 @@ class moore_machine:
         self.transitions = transitions
         self.output_mapping = output_mapping
     
-    @classmethod
-    def from_file(cls, file_path: str):
+    def from_file(file_path: str):
         with open(file_path, 'r') as file:
             lines = file.readlines()
             
@@ -253,7 +251,7 @@ class moore_machine:
 
         # Составляем выходные значения для каждого состояния
         output_mapping = {state: output_mapping_values[i] for i, state in enumerate(states)}
-        return cls(states, inputs, transitions, output_mapping)
+        return moore_machine(states, inputs, transitions, output_mapping)
     
     def moore_to_mealey(moore_machine):
         # Извлекаем состояния, входы, переходы и отображение выходов из moore_machine
@@ -318,3 +316,65 @@ class moore_machine:
       # Складываем все части таблицы
       table_str = outputs + states + transitions
       return table_str
+    
+    def minimize(self):
+        # Шаг 1: Классификация состояний по выходным символам
+        groups = {}
+        for state in self.states:
+            output = self.output_mapping[state]
+            if output not in groups:
+                groups[output] = []
+            groups[output].append(state)
+
+        # Превращаем группы в список списков
+        partition = list(groups.values())
+
+        # Шаг 2: Построение таблицы переходов
+        def get_transition_class(state, input_symbol, current_partition):
+            next_state = self.transitions[(state, input_symbol)]
+            for group in current_partition:
+                if next_state in group:
+                    return current_partition.index(group)
+            return -1
+
+        # Шаг 3-4: Итеративное разбиение групп
+        stable = False
+        while not stable:
+            new_partition = []
+            for group in partition:
+                # Разбиение группы
+                subgroups = {}
+                for state in group:
+                    transition_signature = tuple(get_transition_class(state, input_symbol, partition) for input_symbol in self.inputs)
+                    if transition_signature not in subgroups:
+                        subgroups[transition_signature] = []
+                    subgroups[transition_signature].append(state)
+
+                # Добавляем все полученные подгруппы
+                new_partition.extend(subgroups.values())
+
+            # Проверяем, изменилась ли структура групп
+            if new_partition == partition:
+                stable = True
+            else:
+                partition = new_partition
+
+        # Шаг 5: Построение минимизированного автомата
+        minimized_states = ['s' + str(i) for i in range(len(partition))]
+        minimized_transitions = {}
+        minimized_output_mapping = {}
+
+        for i, group in enumerate(partition):
+            representative_state = group[0]
+            minimized_output_mapping[minimized_states[i]] = self.output_mapping[representative_state]
+
+            # Заполняем переходы для нового состояния
+            for input_symbol in self.inputs:
+                next_state = self.transitions[(representative_state, input_symbol)]
+                for j, group in enumerate(partition):
+                    if next_state in group:
+                        minimized_transitions[(minimized_states[i], input_symbol)] = minimized_states[j]
+                        break
+
+        # Возвращаем минимизированные атрибуты
+        return moore_machine(minimized_states, self.inputs, minimized_transitions, minimized_output_mapping)
